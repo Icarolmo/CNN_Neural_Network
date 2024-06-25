@@ -2,7 +2,11 @@
 import json
 import os
 from keras import layers, models
+from matplotlib import pyplot as plt
+import pandas as pd
+from sklearn.metrics import confusion_matrix, classification_report
 import numpy as np
+import seaborn as sns
 
 class CNN:
     # Método estático, retorna uma class CNN instânciada
@@ -52,6 +56,45 @@ class CNN:
 
         print(f"Hiperparâmetros salvos em {caminho_do_arquivo}")
 
+    # gerarMatrizConfusao recebe os dados de teste e gera, plota e salva a matriz de confusao para os dados.
+    def gerarMatrizConfusao(self, dados_teste, rotulos_teste):
+        # Gera predicoes para os dados de teste
+        predicoes = cnn.model.predict(dados_teste)
+        
+        # Itera sobre as predicoes e pega a letra rotulada para o respectivo dado pela rede para todos os dados.
+        letra_rotulo_predicao = []
+        for predicao in predicoes:
+            letra_rotulo_predicao.append(np.argmax(predicao))
+
+        # Itera sobre os rotulos e pega cada letra esperada que a rede rotule o dado para todos os dados.
+        letra_rotulo_teste = []
+        for rotulo in rotulos_teste:
+            letra_rotulo_teste.append(np.argmax(rotulo))
+
+        # Com as letras rotulada pela rede e as letras esperadas é gerada a matriz de confusão
+        matriz = confusion_matrix(letra_rotulo_teste, letra_rotulo_predicao)
+
+        # Gera de letras que representam nossos rotulos
+        rotulos = list('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+
+        # Cria uma dataframe com pandas da matriz de confusão
+        dataframe = pd.DataFrame(matriz, index=rotulos, columns=rotulos)
+
+        # Salva em excel a matriz de confusão na pasta: matriz_de_confusao
+        dataframe.to_excel('matriz_de_confusao/matriz_excel.xlsx', sheet_name='Matriz de Confusão')
+        print('\nMatriz salva em matriz_de_confusao/matriz_excel.xlsx\n')
+        
+        # Configura a dimensão, letras nas colunas e linhas, cores e números inteiros para matriz.
+        plt.figure(figsize=(12, 10))
+        sns.heatmap(matriz, annot=True, fmt='', cmap='viridis', xticklabels=rotulos, yticklabels=rotulos)
+
+        # Ajusta legendas.
+        plt.xlabel('Colunas')
+        plt.ylabel('Linhas')
+        plt.title('Matriz de confusão 26x26 com rótulos de A-Z')
+
+        # Plota matriz
+        plt.show()
     
     # Função para compilação da rede: determina algoritmo otimizador, função para cálculo do erro e métrica utilizada.
     def compilar(self):
@@ -88,7 +131,7 @@ historia = cnn.iniciarTreinamento(
     dados_treinamento = dados_treinamento,
     rotulos_treinamento = rotulos_treinamento,
     epocas = 50,
-    tamanho_lote = 500,
+    tamanho_lote = 300,
     dados_validacao = (dados_validacao, rotulos_validacao)
 )
 
@@ -96,6 +139,9 @@ historia = cnn.iniciarTreinamento(
 erro, acuracia = cnn.model.evaluate(dados_teste, rotulos_teste)
 
 print(f'\nMétricas calculadas no conjunto de teste \nAcurácia: {acuracia} - Erro quadrático médio: {erro}\n')
+
+# Gera a matriz de confusao salvando em excel e plotando para visualização
+cnn.gerarMatrizConfusao(dados_teste, rotulos_teste)
 
 # Salva os hiperparametros e configuração da rede.
 cnn.salvarHiperparametros()
