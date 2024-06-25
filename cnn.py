@@ -44,7 +44,7 @@ class CNN:
         with open('informacoes_modelo/arquitetura/arquitetura_do_modelo.json', 'w') as json_file:
             json_file.write(modelo_formato_json)
     
-    def salvarErroIteraçãoTreinamento(self, historia):
+    def salvarErroIteracaoTreinamento(self, historia):
         # Salvar o histórico de treinamento
         dataframe = pd.DataFrame(historia.history)
         dataframe.to_csv('informacoes_modelo/erro_durante_treinamento/historia_treinamento.csv', index=False)
@@ -167,6 +167,6 @@ print(f'\nMétricas calculadas no conjunto de teste \nAcurácia: {acuracia} - Er
 cnn.gerarMatrizConfusao(dados_teste, rotulos_teste)
 
 # Salva as informações relevantes do modelo.
-cnn.salvarErroIteraçãoTreinamento(historia)
+cnn.salvarErroIteracaoTreinamento(historia)
 cnn.salvarPesos('pesos_finais', cnn.model.get_weights())
 cnn.salvarHiperparametros()
