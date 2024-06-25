@@ -33,7 +33,23 @@ class CNN:
         self.model.add(layers.Dense(64, activation='relu'))
         self.model.add(layers.Dense(26, activation='softmax'))
     
-    # Função para salvamento dos hiperparametros da rede.
+    # salvarPesos salva os pesos da rede. 
+    def salvarPesos(self, nome_arquivo, pesos):
+        for i, peso in enumerate(pesos):
+            np.save(f'informacoes_modelo/pesos/{nome_arquivo}_camada_{i}.npy', peso) 
+            
+    # salvarArquiteturaModelo salva a arquitetura do modelo
+    def salvarArquiteturaModelo(self):
+        modelo_formato_json = self.model.to_json()
+        with open('informacoes_modelo/arquitetura/arquitetura_do_modelo.json', 'w') as json_file:
+            json_file.write(modelo_formato_json)
+    
+    def salvarErroIteraçãoTreinamento(self, historia):
+        # Salvar o histórico de treinamento
+        dataframe = pd.DataFrame(historia.history)
+        dataframe.to_csv('informacoes_modelo/erro_durante_treinamento/historia_treinamento.csv', index=False)
+    
+    # salvarHiperparametros salva os hiperparametros da rede.
     def salvarHiperparametros(self):
         # Recuperando hiperparâmetros paras salvar a configuração da rede.
         hiperparametros = {
@@ -44,7 +60,7 @@ class CNN:
         }
         
         # Define a pasta onde os hiperparâmetros serão salvos
-        pasta = 'hiperparametros'
+        pasta = 'informacoes_modelo/hiperparametros/'
         os.makedirs(pasta, exist_ok=True)
 
         # Caminho do arquivo onde os hiperparâmetros serão salvos
@@ -60,6 +76,9 @@ class CNN:
     def gerarMatrizConfusao(self, dados_teste, rotulos_teste):
         # Gera predicoes para os dados de teste
         predicoes = cnn.model.predict(dados_teste)
+        
+        # Salva as predicoes da rede para os dados de teste.
+        np.save('informacoes_modelo/saidas_dados_teste/predicoes_teste.npy', predicoes)
         
         # Itera sobre as predicoes e pega a letra rotulada para o respectivo dado pela rede para todos os dados.
         letra_rotulo_predicao = []
@@ -126,6 +145,10 @@ rotulos_teste =  np.array(rotulos [1150:])
 cnn = CNN.CriarRedeNeural()
 cnn.compilar()
 
+# Salva pesos iniciais e arquitetura da rede
+cnn.salvarPesos('pesos_iniciais', cnn.model.get_weights())
+cnn.salvarArquiteturaModelo()
+
 # Inicia treinamento da rede e recebe informações referentes ao erro, acurácia, camadas na variável historia.
 historia = cnn.iniciarTreinamento(
     dados_treinamento = dados_treinamento,
@@ -143,5 +166,7 @@ print(f'\nMétricas calculadas no conjunto de teste \nAcurácia: {acuracia} - Er
 # Gera a matriz de confusao salvando em excel e plotando para visualização
 cnn.gerarMatrizConfusao(dados_teste, rotulos_teste)
 
-# Salva os hiperparametros e configuração da rede.
+# Salva as informações relevantes do modelo.
+cnn.salvarErroIteraçãoTreinamento(historia)
+cnn.salvarPesos('pesos_finais', cnn.model.get_weights())
 cnn.salvarHiperparametros()
