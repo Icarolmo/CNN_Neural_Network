@@ -4,7 +4,7 @@ import os
 from keras import layers, models
 from matplotlib import pyplot as plt
 import pandas as pd
-from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.metrics import confusion_matrix
 import numpy as np
 import seaborn as sns
 
@@ -26,9 +26,9 @@ class CNN:
         # 7ª - Dense (Camada densa): Última camada: Saída com 26 neurônios, cada um representando uma classe (letra).
         # É utilizada a função softmax para rotular o dado com uma classe.
         self.model.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=(12, 10, 1))) # Ajuste do input_shape para 12x10x1 (Algura, Lagura e Canais de cores).
-        self.model.add(layers.MaxPooling2D((2, 2)))
+        self.model.add(layers.MaxPooling2D((2, 2), 2))
         self.model.add(layers.Conv2D(64, (3, 3), activation='relu'))
-        self.model.add(layers.MaxPooling2D((2, 2)))
+        self.model.add(layers.MaxPooling2D((2, 2), 2))
         self.model.add(layers.Flatten())
         self.model.add(layers.Dense(64, activation='relu'))
         self.model.add(layers.Dense(26, activation='softmax'))
@@ -44,6 +44,7 @@ class CNN:
         with open('informacoes_modelo/arquitetura/arquitetura_do_modelo.json', 'w') as json_file:
             json_file.write(modelo_formato_json)
     
+    # salvarErroIteracaoTreinamento
     def salvarErroIteracaoTreinamento(self, historia):
         # Salvar o histórico de treinamento
         dataframe = pd.DataFrame(historia.history)
@@ -136,10 +137,10 @@ rotulos = np.load('dados/Y_classe.npy')
 # Preparar os dados de treinamento, validação e teste
 dados_treinamento = np.array(dados[:800])
 rotulos_treinamento =  np.array(rotulos[:800])
-dados_validacao =  np.array(dados[800:1150])
-rotulos_validacao =  np.array(rotulos[800:1150])
-dados_teste =  np.array(dados[1150:])
-rotulos_teste =  np.array(rotulos [1150:])
+dados_validacao =  np.array(dados[800:1050])
+rotulos_validacao =  np.array(rotulos[800:1050])
+dados_teste =  np.array(dados[1050:])
+rotulos_teste =  np.array(rotulos [1050:])
 
 # Criação da rede e compilação. 
 cnn = CNN.CriarRedeNeural()
@@ -154,7 +155,7 @@ historia = cnn.iniciarTreinamento(
     dados_treinamento = dados_treinamento,
     rotulos_treinamento = rotulos_treinamento,
     epocas = 50,
-    tamanho_lote = 300,
+    tamanho_lote = 150,
     dados_validacao = (dados_validacao, rotulos_validacao)
 )
 
